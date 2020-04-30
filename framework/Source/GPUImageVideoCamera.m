@@ -477,8 +477,25 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
             [_inputCamera lockForConfiguration:&error];
             if (error == nil) {
 #if defined(__IPHONE_7_0)
-                [_inputCamera setActiveVideoMinFrameDuration:CMTimeMake(1, _frameRate)];
-                [_inputCamera setActiveVideoMaxFrameDuration:CMTimeMake(1, _frameRate)];
+            AVCaptureDevice *videoDevice = self.inputCamera;
+                    for(AVCaptureDeviceFormat *vFormat in [videoDevice formats] ) {
+                        CMFormatDescriptionRef description= vFormat.formatDescription;
+                        float maxRate = ((AVFrameRateRange*) [vFormat.videoSupportedFrameRateRanges objectAtIndex:0]).maxFrameRate;
+                        if (maxRate > frameRate - 1 &&
+                           CMFormatDescriptionGetMediaSubType(description)==kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+                            if ([videoDevice lockForConfiguration:nil]) {
+                                videoDevice.activeFormat = vFormat;
+                                [videoDevice setActiveVideoMinFrameDuration:CMTimeMake(10, frameRate * 10)];
+                                [videoDevice setActiveVideoMaxFrameDuration:CMTimeMake(10, frameRate * 10)];
+                                [videoDevice unlockForConfiguration];
+                                break;
+                            }
+                        }
+                    }
+                    [self resetBenchmarkAverage];
+
+                // [_inputCamera setActiveVideoMinFrameDuration:CMTimeMake(1, _frameRate)];
+                // [_inputCamera setActiveVideoMaxFrameDuration:CMTimeMake(1, _frameRate)];
 #endif
             }
             [_inputCamera unlockForConfiguration];
