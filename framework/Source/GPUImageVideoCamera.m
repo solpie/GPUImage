@@ -467,7 +467,7 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
 - (void)setFrameRate:(int32_t)frameRate;
 {
 	_frameRate = frameRate;
-	
+	NSLog(@"GPUImage patch 60fps");
 	if (_frameRate > 0)
 	{
 		if ([_inputCamera respondsToSelector:@selector(setActiveVideoMinFrameDuration:)] &&
